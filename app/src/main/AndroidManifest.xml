@@ -16,15 +16,15 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="m">
         <activity
-            android:name=".ChatActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".MessaegActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".MainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".MessageActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ChatActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

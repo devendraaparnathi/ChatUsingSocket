@@ -1,8 +1,12 @@
 package com.example.kotlinstart.database;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -20,36 +24,64 @@ public class MessageAdapter extends RecyclerView.Adapter {
 
     private static final int TYPE_MESSAGE_SENT = 0;
     private static final int TYPE_MESSAGE_RECEIVED = 1;
+    private static final int TYPE_IMAGE_SENT = 2;
+    private static final int TYPE_IMAGE_RECEIVED = 3;
 
     private LayoutInflater inflater;
     private List<JSONObject> messages = new ArrayList<>();
 
-    public MessageAdapter(LayoutInflater inflater) {
+    public MessageAdapter (LayoutInflater inflater) {
         this.inflater = inflater;
     }
 
     private class SentMessageHolder extends RecyclerView.ViewHolder {
 
-        TextView textView;
+        TextView messageTxt;
 
         public SentMessageHolder(@NonNull View itemView) {
             super(itemView);
 
-            textView = itemView.findViewById(R.id.sentText);
+            messageTxt = itemView.findViewById(R.id.sentText);
         }
     }
 
-    private class ReceiveMessage extends RecyclerView.ViewHolder {
+    private class SentImageHolder extends RecyclerView.ViewHolder {
+
+        ImageView imageView;
+
+        public SentImageHolder(@NonNull View itemView) {
+            super(itemView);
+
+            imageView = itemView.findViewById(R.id.sentImage);
+        }
+    }
+
+    private class ReceivedMessageHolder extends RecyclerView.ViewHolder {
 
         TextView nameTxt, messageTxt;
 
-        public ReceiveMessage(@NonNull View itemView) {
+        public ReceivedMessageHolder(@NonNull View itemView) {
             super(itemView);
 
             nameTxt = itemView.findViewById(R.id.nameTxt);
             messageTxt = itemView.findViewById(R.id.receiveText);
         }
     }
+
+    private class ReceivedImageHolder extends RecyclerView.ViewHolder {
+
+        ImageView imageView;
+        TextView nameTxt;
+
+        public ReceivedImageHolder(@NonNull View itemView) {
+            super(itemView);
+
+            imageView = itemView.findViewById(R.id.receivePhoto);
+            nameTxt = itemView.findViewById(R.id.nameTxt);
+
+        }
+    }
+
 
     @Override
     public int getItemViewType(int position) {
@@ -58,17 +90,25 @@ public class MessageAdapter extends RecyclerView.Adapter {
 
         try {
             if (message.getBoolean("isSent")) {
+
                 if (message.has("message"))
                     return TYPE_MESSAGE_SENT;
+                else
+                    return TYPE_IMAGE_SENT;
+
             } else {
+
                 if (message.has("message"))
                     return TYPE_MESSAGE_RECEIVED;
+                else
+                    return TYPE_IMAGE_RECEIVED;
+
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        return -1;
 
+        return -1;
     }
 
     @NonNull
@@ -77,15 +117,24 @@ public class MessageAdapter extends RecyclerView.Adapter {
 
         View view;
 
-        switch (viewType)
-        {
+        switch (viewType) {
             case TYPE_MESSAGE_SENT:
-                view = inflater.inflate(R.layout.item_sent_message,parent,false);
+                view = inflater.inflate(R.layout.item_sent_message, parent, false);
                 return new SentMessageHolder(view);
             case TYPE_MESSAGE_RECEIVED:
-                view = inflater.inflate(R.layout.item_receive_message,parent,false);
-                return new ReceiveMessage(view);
 
+                view = inflater.inflate(R.layout.item_receive_message, parent, false);
+                return new ReceivedMessageHolder(view);
+
+            case TYPE_IMAGE_SENT:
+
+                view = inflater.inflate(R.layout.item_sent_image, parent, false);
+                return new SentImageHolder(view);
+
+            case TYPE_IMAGE_RECEIVED:
+
+                view = inflater.inflate(R.layout.item_receive_photo, parent, false);
+                return new ReceivedImageHolder(view);
 
         }
 
@@ -98,25 +147,51 @@ public class MessageAdapter extends RecyclerView.Adapter {
         JSONObject message = messages.get(position);
 
         try {
-            if (message.getBoolean("isSent"))
-            {
-                if (message.has("message"))
-                {
+            if (message.getBoolean("isSent")) {
+
+                if (message.has("message")) {
+
                     SentMessageHolder messageHolder = (SentMessageHolder) holder;
-                    messageHolder.textView.setText(message.getString("message"));
-                }else
-                {
-                    if (message.has("message")){
-                        ReceiveMessage receiveMessage = (ReceiveMessage) holder;
-                        receiveMessage.nameTxt.setText(message.getString("name"));
-                        receiveMessage.messageTxt.setText(message.getString("message"));
+                    messageHolder.messageTxt.setText(message.getString("message"));
+
+                } else {
+
+                    SentImageHolder imageHolder = (SentImageHolder) holder;
+                    Bitmap bitmap = getBitmapFromString(message.getString("image"));
+
+                    imageHolder.imageView.setImageBitmap(bitmap);
 
                 }
+
+            } else {
+
+                if (message.has("message")) {
+
+                    ReceivedMessageHolder messageHolder = (ReceivedMessageHolder) holder;
+                    messageHolder.nameTxt.setText(message.getString("name"));
+                    messageHolder.messageTxt.setText(message.getString("message"));
+
+                } else {
+
+                    ReceivedImageHolder imageHolder = (ReceivedImageHolder) holder;
+                    imageHolder.nameTxt.setText(message.getString("name"));
+
+                    Bitmap bitmap = getBitmapFromString(message.getString("image"));
+                    imageHolder.imageView.setImageBitmap(bitmap);
+
                 }
+
             }
-        } catch (Exception e) {
+        } catch (JSONException e) {
             e.printStackTrace();
         }
+
+    }
+
+    private Bitmap getBitmapFromString(String image) {
+
+        byte[] bytes = Base64.decode(image, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
     }
 
     @Override
@@ -124,7 +199,7 @@ public class MessageAdapter extends RecyclerView.Adapter {
         return messages.size();
     }
 
-    public void addItem(JSONObject jsonObject){
+    public void addItem (JSONObject jsonObject) {
         messages.add(jsonObject);
         notifyDataSetChanged();
     }
