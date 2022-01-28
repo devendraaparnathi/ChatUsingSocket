@@ -1,5 +1,6 @@
 const SocketServer = require('websocket').server
-const http = require('http')
+const http = require('h
+ttp')
 
 const server = http.createServer((req, res) => {})
 
@@ -27,5 +28,4 @@ wsServer.on('request', (req) => {
         console.log('connection closed')
         connections.splice(connections.indexOf(connection), 1)
     })
-
 })

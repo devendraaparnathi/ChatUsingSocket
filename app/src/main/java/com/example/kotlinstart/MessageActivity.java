@@ -35,7 +35,7 @@ public class MessageActivity extends AppCompatActivity implements TextWatcher {
 
     private String name;
     private WebSocket webSocket;
-    private String SERVER_PATH = "ws://192.168.2.6:3000";
+    private String SERVER_PATH = "ws://192.168.2.24:3000";
     private EditText messageEdit;
     private View sendBtn, pickImgBtn;
     private RecyclerView recyclerView;
